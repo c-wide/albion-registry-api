@@ -1,0 +1,27 @@
+# fly.toml app configuration file generated for albion-registry-api on 2024-03-20T03:27:43-05:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'albion-registry-api'
+primary_region = 'dfw'
+
+[build]
+  [build.args]
+    GO_VERSION = '1.21'
+
+[env]
+  PORT = '8080'
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[[vm]]
+  memory = '256mb'
+  cpu_kind = 'shared'
+  cpus = 1
