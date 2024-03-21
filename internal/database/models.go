@@ -7,6 +7,7 @@ package database
 import (
 	"database/sql/driver"
 	"fmt"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -55,52 +56,52 @@ func (ns NullRegionEnum) Value() (driver.Value, error) {
 }
 
 type Alliance struct {
-	Tag        string             `json:"tag"`
-	AllianceID string             `json:"alliance_id"`
-	Region     RegionEnum         `json:"region"`
-	FirstSeen  pgtype.Timestamptz `json:"first_seen"`
-	LastSeen   pgtype.Timestamptz `json:"last_seen"`
+	Tag        string     `json:"tag"`
+	AllianceID string     `json:"alliance_id"`
+	Region     RegionEnum `json:"region"`
+	FirstSeen  time.Time  `json:"first_seen"`
+	LastSeen   time.Time  `json:"last_seen"`
 }
 
 type Guild struct {
-	Name      string             `json:"name"`
-	GuildID   string             `json:"guild_id"`
-	Region    RegionEnum         `json:"region"`
-	FirstSeen pgtype.Timestamptz `json:"first_seen"`
-	LastSeen  pgtype.Timestamptz `json:"last_seen"`
+	Name      string     `json:"name"`
+	GuildID   string     `json:"guild_id"`
+	Region    RegionEnum `json:"region"`
+	FirstSeen time.Time  `json:"first_seen"`
+	LastSeen  time.Time  `json:"last_seen"`
 }
 
 type GuildAllianceMembership struct {
-	ID         pgtype.UUID        `json:"id"`
-	GuildID    string             `json:"guild_id"`
-	AllianceID string             `json:"alliance_id"`
-	Region     RegionEnum         `json:"region"`
-	FirstSeen  pgtype.Timestamptz `json:"first_seen"`
-	LastSeen   pgtype.Timestamptz `json:"last_seen"`
+	ID         pgtype.UUID `json:"id"`
+	GuildID    string      `json:"guild_id"`
+	AllianceID string      `json:"alliance_id"`
+	Region     RegionEnum  `json:"region"`
+	FirstSeen  time.Time   `json:"first_seen"`
+	LastSeen   time.Time   `json:"last_seen"`
 }
 
 type Player struct {
-	Name      string             `json:"name"`
-	PlayerID  string             `json:"player_id"`
-	Region    RegionEnum         `json:"region"`
-	FirstSeen pgtype.Timestamptz `json:"first_seen"`
-	LastSeen  pgtype.Timestamptz `json:"last_seen"`
+	Name      string     `json:"name"`
+	PlayerID  string     `json:"player_id"`
+	Region    RegionEnum `json:"region"`
+	FirstSeen time.Time  `json:"first_seen"`
+	LastSeen  time.Time  `json:"last_seen"`
 }
 
 type PlayerAllianceMembership struct {
-	ID         pgtype.UUID        `json:"id"`
-	PlayerID   string             `json:"player_id"`
-	AllianceID string             `json:"alliance_id"`
-	Region     RegionEnum         `json:"region"`
-	FirstSeen  pgtype.Timestamptz `json:"first_seen"`
-	LastSeen   pgtype.Timestamptz `json:"last_seen"`
+	ID         pgtype.UUID `json:"id"`
+	PlayerID   string      `json:"player_id"`
+	AllianceID string      `json:"alliance_id"`
+	Region     RegionEnum  `json:"region"`
+	FirstSeen  time.Time   `json:"first_seen"`
+	LastSeen   time.Time   `json:"last_seen"`
 }
 
 type PlayerGuildMembership struct {
-	ID        pgtype.UUID        `json:"id"`
-	PlayerID  string             `json:"player_id"`
-	GuildID   string             `json:"guild_id"`
-	Region    RegionEnum         `json:"region"`
-	FirstSeen pgtype.Timestamptz `json:"first_seen"`
-	LastSeen  pgtype.Timestamptz `json:"last_seen"`
+	ID        pgtype.UUID `json:"id"`
+	PlayerID  string      `json:"player_id"`
+	GuildID   string      `json:"guild_id"`
+	Region    RegionEnum  `json:"region"`
+	FirstSeen time.Time   `json:"first_seen"`
+	LastSeen  time.Time   `json:"last_seen"`
 }

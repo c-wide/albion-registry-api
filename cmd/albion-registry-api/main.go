@@ -71,9 +71,11 @@ func main() {
 	// Register groups
 	v1 := e.Group("/v1")
 	stats := v1.Group("/stats")
+	players := v1.Group("/players")
 
 	// Register routes
 	stats.GET("/summary", h.StatsSummary)
+	players.GET("/search", h.PlayersSearch)
 
 	// Start the server
 	err = e.Start(fmt.Sprintf(":%s", os.Getenv("DEFAULT_PORT")))

@@ -7,7 +7,45 @@ package database
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
+
+const findPlayersByNameAndRegion = `-- name: FindPlayersByNameAndRegion :many
+SELECT player_id, name
+FROM players
+WHERE name ILIKE $1 || '%' AND region = $2
+`
+
+type FindPlayersByNameAndRegionParams struct {
+	Name   pgtype.Text `json:"name"`
+	Region RegionEnum  `json:"region"`
+}
+
+type FindPlayersByNameAndRegionRow struct {
+	PlayerID string `json:"player_id"`
+	Name     string `json:"name"`
+}
+
+func (q *Queries) FindPlayersByNameAndRegion(ctx context.Context, arg FindPlayersByNameAndRegionParams) ([]FindPlayersByNameAndRegionRow, error) {
+	rows, err := q.db.Query(ctx, findPlayersByNameAndRegion, arg.Name, arg.Region)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []FindPlayersByNameAndRegionRow{}
+	for rows.Next() {
+		var i FindPlayersByNameAndRegionRow
+		if err := rows.Scan(&i.PlayerID, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
 
 const getCountsOfEntities = `-- name: GetCountsOfEntities :one
 SELECT
