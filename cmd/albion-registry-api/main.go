@@ -76,6 +76,8 @@ func main() {
 	// Register routes
 	stats.GET("/summary", h.StatsSummary)
 	players.GET("/search", h.PlayersSearch)
+	players.GET("/details", h.PlayersDetails)
+	players.GET("/history", h.PlayersHistory)
 
 	// Start the server
 	err = e.Start(fmt.Sprintf(":%s", os.Getenv("DEFAULT_PORT")))

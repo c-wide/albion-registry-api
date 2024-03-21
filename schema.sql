@@ -9,6 +9,8 @@ CREATE TABLE players (
     PRIMARY KEY (player_id, region)
 );
 
+CREATE INDEX idx_players_region_name ON players (region, name);
+
 CREATE TABLE guilds (
     name VARCHAR(50) NOT NULL,
     guild_id VARCHAR(50) NOT NULL,
@@ -18,6 +20,8 @@ CREATE TABLE guilds (
     PRIMARY KEY (guild_id, region)
 );
 
+CREATE INDEX idx_guild_region_name ON guilds (region, name);
+
 CREATE TABLE alliances (
     tag VARCHAR(5) NOT NULL,
     alliance_id VARCHAR(50) NOT NULL,
@@ -26,6 +30,8 @@ CREATE TABLE alliances (
     last_seen TIMESTAMPTZ NOT NULL,
     PRIMARY KEY (alliance_id, region)
 );
+
+CREATE INDEX idx_alliance_region_tag ON alliances (region, tag);
 
 CREATE TABLE player_guild_memberships (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
