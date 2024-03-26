@@ -56,11 +56,12 @@ func (ns NullRegionEnum) Value() (driver.Value, error) {
 }
 
 type Alliance struct {
-	Tag        string     `json:"tag"`
-	AllianceID string     `json:"alliance_id"`
-	Region     RegionEnum `json:"region"`
-	FirstSeen  time.Time  `json:"first_seen"`
-	LastSeen   time.Time  `json:"last_seen"`
+	Name       pgtype.Text `json:"name"`
+	Tag        string      `json:"tag"`
+	AllianceID string      `json:"alliance_id"`
+	Region     RegionEnum  `json:"region"`
+	FirstSeen  time.Time   `json:"first_seen"`
+	LastSeen   time.Time   `json:"last_seen"`
 }
 
 type Guild struct {

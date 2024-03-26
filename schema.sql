@@ -23,6 +23,7 @@ CREATE TABLE guilds (
 CREATE INDEX idx_guild_region_name ON guilds (region, name);
 
 CREATE TABLE alliances (
+    name VARCHAR(50),
     tag VARCHAR(5) NOT NULL,
     alliance_id VARCHAR(50) NOT NULL,
     region region_enum NOT NULL,
@@ -31,6 +32,7 @@ CREATE TABLE alliances (
     PRIMARY KEY (alliance_id, region)
 );
 
+CREATE INDEX idx_alliance_region_name ON alliances (region, name);
 CREATE INDEX idx_alliance_region_tag ON alliances (region, tag);
 
 CREATE TABLE player_guild_memberships (

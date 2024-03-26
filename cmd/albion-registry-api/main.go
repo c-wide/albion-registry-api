@@ -69,9 +69,8 @@ func main() {
 	h := &handler.Handler{DB: db}
 
 	// Register groups
-	v1 := e.Group("/v1")
-	stats := v1.Group("/stats")
-	players := v1.Group("/players")
+	stats := e.Group("/stats")
+	players := e.Group("/players")
 
 	// Register routes
 	stats.GET("/summary", h.StatsSummary)
