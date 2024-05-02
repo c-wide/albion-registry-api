@@ -2,7 +2,7 @@ version: "2"
 sql:
   - engine: "postgresql"
     queries: "query.sql"
-    schema: "schema.sql"
+    schema: "shared-db/schema.sql"
     gen:
       go:
         package: "database"

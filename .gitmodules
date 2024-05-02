@@ -1,0 +1,3 @@
+[submodule "shared-db"]
+	path = shared-db
+	url = https://github.com/ao-tools/albion-registry-db
