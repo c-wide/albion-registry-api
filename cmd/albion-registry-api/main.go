@@ -8,9 +8,9 @@ import (
 
 	"github.com/ao-tools/albion-registry-api/internal/database"
 	"github.com/ao-tools/albion-registry-api/internal/handler"
-	adapter "github.com/ao-tools/albion-registry-api/internal/zerolog"
+	adapter "github.com/axiomhq/axiom-go/adapters/zerolog"
 	"github.com/go-playground/validator/v10"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -29,31 +29,35 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 func main() {
 	// Load environment variables from .env file
 	if err := godotenv.Load(); err != nil {
-		zl.Info().Msg("Unable to load environment variables from .env file")
+		fmt.Printf("Unable to load environment variables from .env file")
 	}
 
-	// Create a new Axiom writer
-	writer, err := adapter.New()
-	if err != nil {
-		zl.Fatal().Err(err).Msg("Unable to create Axiom writer")
+	// Create default logger
+	logger := zerolog.New(os.Stderr).With().Timestamp().Logger()
+
+	// If Axiom logging is enabled, create new logger
+	_, axiomEnabled := os.LookupEnv("AXIOM_TOKEN")
+	if axiomEnabled {
+		writer, err := adapter.New()
+		if err != nil {
+			logger.Fatal().Err(err).Msg("Unable to create Axiom writer")
+		}
+
+		defer writer.Close()
+
+		logger = zerolog.New(io.MultiWriter(writer, os.Stderr)).With().Timestamp().Logger()
 	}
-
-	// Defer the close of the writer, very important
-	defer writer.Close()
-
-	// Create a new logger and set the default logger to use it
-	zl.Logger = zerolog.New(io.MultiWriter(writer, os.Stderr)).With().Timestamp().Logger()
 
 	// Database stuff
-	ctx := context.Background()
-
-	conn, err := pgx.Connect(ctx, os.Getenv("DATABASE_URL"))
+	pool, err := pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
-		zl.Fatal().Err(err).Msg("Unable to connect to database")
+		logger.Fatal().Err(err).Msg("Unable to create database pool")
 	}
-	defer conn.Close(ctx)
+	defer pool.Close()
 
-	db := database.New(conn)
+	queries := database.New(pool)
+
+	// TODO: do stuff from here
 
 	// Echo new echo instance
 	e := echo.New()
@@ -66,7 +70,7 @@ func main() {
 	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(10)))
 
 	// Initialize handler
-	h := &handler.Handler{DB: db}
+	h := &handler.Handler{DB: queries}
 
 	// Register groups
 	stats := e.Group("/stats")
@@ -74,8 +78,6 @@ func main() {
 
 	// Register routes
 	stats.GET("/summary", h.StatsSummary)
-	players.GET("/search", h.PlayersSearch)
-	players.GET("/details", h.PlayersDetails)
 	players.GET("/history", h.PlayersHistory)
 
 	// Start the server

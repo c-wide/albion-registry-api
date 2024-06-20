@@ -7,9 +7,6 @@ package database
 
 import (
 	"context"
-	"time"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const doesAllianceExist = `-- name: DoesAllianceExist :one
@@ -17,8 +14,8 @@ SELECT EXISTS(SELECT 1 FROM alliances WHERE alliance_id = $1 AND region = $2)
 `
 
 type DoesAllianceExistParams struct {
-	AllianceID string     `json:"alliance_id"`
-	Region     RegionEnum `json:"region"`
+	AllianceID string `json:"alliance_id"`
+	Region     string `json:"region"`
 }
 
 func (q *Queries) DoesAllianceExist(ctx context.Context, arg DoesAllianceExistParams) (bool, error) {
@@ -33,8 +30,8 @@ SELECT EXISTS(SELECT 1 FROM guilds WHERE guild_id = $1 AND region = $2)
 `
 
 type DoesGuildExistParams struct {
-	GuildID string     `json:"guild_id"`
-	Region  RegionEnum `json:"region"`
+	GuildID string `json:"guild_id"`
+	Region  string `json:"region"`
 }
 
 func (q *Queries) DoesGuildExist(ctx context.Context, arg DoesGuildExistParams) (bool, error) {
@@ -49,8 +46,8 @@ SELECT EXISTS(SELECT 1 FROM players WHERE player_id = $1 AND region = $2)
 `
 
 type DoesPlayerExistParams struct {
-	PlayerID string     `json:"player_id"`
-	Region   RegionEnum `json:"region"`
+	PlayerID string `json:"player_id"`
+	Region   string `json:"region"`
 }
 
 func (q *Queries) DoesPlayerExist(ctx context.Context, arg DoesPlayerExistParams) (bool, error) {
@@ -58,144 +55,6 @@ func (q *Queries) DoesPlayerExist(ctx context.Context, arg DoesPlayerExistParams
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
-}
-
-const getAllianceDetails = `-- name: GetAllianceDetails :one
-SELECT alliance_id AS id, COALESCE(name, ''), tag, first_seen, last_seen
-FROM alliances
-WHERE alliance_id = $1 AND region = $2
-`
-
-type GetAllianceDetailsParams struct {
-	AllianceID string     `json:"alliance_id"`
-	Region     RegionEnum `json:"region"`
-}
-
-type GetAllianceDetailsRow struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	Tag       string    `json:"tag"`
-	FirstSeen time.Time `json:"first_seen"`
-	LastSeen  time.Time `json:"last_seen"`
-}
-
-func (q *Queries) GetAllianceDetails(ctx context.Context, arg GetAllianceDetailsParams) (GetAllianceDetailsRow, error) {
-	row := q.db.QueryRow(ctx, getAllianceDetails, arg.AllianceID, arg.Region)
-	var i GetAllianceDetailsRow
-	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.Tag,
-		&i.FirstSeen,
-		&i.LastSeen,
-	)
-	return i, err
-}
-
-const getAllianceGuilds = `-- name: GetAllianceGuilds :many
-SELECT g.guild_id AS id, g.name, gam.first_seen, gam.last_seen
-FROM guild_alliance_memberships gam
-JOIN guilds g ON gam.guild_id = g.guild_id AND gam.region = g.region
-WHERE gam.alliance_id = $1 AND gam.region = $2
-LIMIT $3 OFFSET $4
-`
-
-type GetAllianceGuildsParams struct {
-	AllianceID string     `json:"alliance_id"`
-	Region     RegionEnum `json:"region"`
-	Limit      int32      `json:"limit"`
-	Offset     int32      `json:"offset"`
-}
-
-type GetAllianceGuildsRow struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	FirstSeen time.Time `json:"first_seen"`
-	LastSeen  time.Time `json:"last_seen"`
-}
-
-func (q *Queries) GetAllianceGuilds(ctx context.Context, arg GetAllianceGuildsParams) ([]GetAllianceGuildsRow, error) {
-	rows, err := q.db.Query(ctx, getAllianceGuilds,
-		arg.AllianceID,
-		arg.Region,
-		arg.Limit,
-		arg.Offset,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []GetAllianceGuildsRow{}
-	for rows.Next() {
-		var i GetAllianceGuildsRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Name,
-			&i.FirstSeen,
-			&i.LastSeen,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getAllianceHistory = `-- name: GetAllianceHistory :many
-(SELECT 'player' AS type, p.player_id AS id, p.name, pam.first_seen, pam.last_seen
-FROM player_alliance_memberships pam
-JOIN players p ON pam.player_id = p.player_id AND pam.region = p.region
-WHERE pam.alliance_id = $1 AND pam.region = $2
-LIMIT $3)
-UNION ALL
-(SELECT 'guild' AS type, g.guild_id AS id, g.name, gam.first_seen, gam.last_seen
-FROM guild_alliance_memberships gam
-JOIN guilds g ON gam.guild_id = g.guild_id AND gam.region = g.region
-WHERE gam.alliance_id = $1 AND gam.region = $2
-LIMIT $3)
-`
-
-type GetAllianceHistoryParams struct {
-	AllianceID string     `json:"alliance_id"`
-	Region     RegionEnum `json:"region"`
-	Limit      int32      `json:"limit"`
-}
-
-type GetAllianceHistoryRow struct {
-	Type      string    `json:"type"`
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	FirstSeen time.Time `json:"first_seen"`
-	LastSeen  time.Time `json:"last_seen"`
-}
-
-func (q *Queries) GetAllianceHistory(ctx context.Context, arg GetAllianceHistoryParams) ([]GetAllianceHistoryRow, error) {
-	rows, err := q.db.Query(ctx, getAllianceHistory, arg.AllianceID, arg.Region, arg.Limit)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []GetAllianceHistoryRow{}
-	for rows.Next() {
-		var i GetAllianceHistoryRow
-		if err := rows.Scan(
-			&i.Type,
-			&i.ID,
-			&i.Name,
-			&i.FirstSeen,
-			&i.LastSeen,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }
 
 const getCountsOfEntities = `-- name: GetCountsOfEntities :one
@@ -218,580 +77,53 @@ func (q *Queries) GetCountsOfEntities(ctx context.Context) (GetCountsOfEntitiesR
 	return i, err
 }
 
-const getGuildAlliances = `-- name: GetGuildAlliances :many
-SELECT a.alliance_id AS id, COALESCE(a.name, ''), a.tag, gam.first_seen, gam.last_seen
-FROM guild_alliance_memberships gam
-JOIN alliances a ON gam.alliance_id = a.alliance_id AND gam.region = a.region
-WHERE gam.guild_id = $1 AND gam.region = $2
-LIMIT $3 OFFSET $4
-`
-
-type GetGuildAlliancesParams struct {
-	GuildID string     `json:"guild_id"`
-	Region  RegionEnum `json:"region"`
-	Limit   int32      `json:"limit"`
-	Offset  int32      `json:"offset"`
-}
-
-type GetGuildAlliancesRow struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	Tag       string    `json:"tag"`
-	FirstSeen time.Time `json:"first_seen"`
-	LastSeen  time.Time `json:"last_seen"`
-}
-
-func (q *Queries) GetGuildAlliances(ctx context.Context, arg GetGuildAlliancesParams) ([]GetGuildAlliancesRow, error) {
-	rows, err := q.db.Query(ctx, getGuildAlliances,
-		arg.GuildID,
-		arg.Region,
-		arg.Limit,
-		arg.Offset,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []GetGuildAlliancesRow{}
-	for rows.Next() {
-		var i GetGuildAlliancesRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Name,
-			&i.Tag,
-			&i.FirstSeen,
-			&i.LastSeen,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getGuildDetails = `-- name: GetGuildDetails :one
-SELECT guild_id AS id, name, first_seen, last_seen
-FROM guilds
-WHERE guild_id = $1 AND region = $2
-`
-
-type GetGuildDetailsParams struct {
-	GuildID string     `json:"guild_id"`
-	Region  RegionEnum `json:"region"`
-}
-
-type GetGuildDetailsRow struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	FirstSeen time.Time `json:"first_seen"`
-	LastSeen  time.Time `json:"last_seen"`
-}
-
-func (q *Queries) GetGuildDetails(ctx context.Context, arg GetGuildDetailsParams) (GetGuildDetailsRow, error) {
-	row := q.db.QueryRow(ctx, getGuildDetails, arg.GuildID, arg.Region)
-	var i GetGuildDetailsRow
-	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.FirstSeen,
-		&i.LastSeen,
-	)
-	return i, err
-}
-
-const getGuildHistory = `-- name: GetGuildHistory :many
-(SELECT 'player' AS type, p.player_id AS id, p.name, NULL AS tag, pgm.first_seen, pgm.last_seen
-FROM player_guild_memberships pgm
-JOIN players p ON pgm.player_id = p.player_id AND pgm.region = p.region
-WHERE pgm.guild_id = $1 AND pgm.region = $2
-LIMIT $3)
-UNION ALL
-(SELECT 'alliance' AS type, a.alliance_id AS id, COALESCE(a.name, ''), a.tag, gam.first_seen, gam.last_seen
-FROM guild_alliance_memberships gam
-JOIN alliances a ON gam.alliance_id = a.alliance_id AND gam.region = a.region
-WHERE gam.guild_id = $1 AND gam.region = $2
-LIMIT $3)
-`
-
-type GetGuildHistoryParams struct {
-	GuildID string     `json:"guild_id"`
-	Region  RegionEnum `json:"region"`
-	Limit   int32      `json:"limit"`
-}
-
-type GetGuildHistoryRow struct {
-	Type      string      `json:"type"`
-	ID        string      `json:"id"`
-	Name      string      `json:"name"`
-	Tag       interface{} `json:"tag"`
-	FirstSeen time.Time   `json:"first_seen"`
-	LastSeen  time.Time   `json:"last_seen"`
-}
-
-func (q *Queries) GetGuildHistory(ctx context.Context, arg GetGuildHistoryParams) ([]GetGuildHistoryRow, error) {
-	rows, err := q.db.Query(ctx, getGuildHistory, arg.GuildID, arg.Region, arg.Limit)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []GetGuildHistoryRow{}
-	for rows.Next() {
-		var i GetGuildHistoryRow
-		if err := rows.Scan(
-			&i.Type,
-			&i.ID,
-			&i.Name,
-			&i.Tag,
-			&i.FirstSeen,
-			&i.LastSeen,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getGuildMembers = `-- name: GetGuildMembers :many
-SELECT p.player_id AS id, p.name, pgm.first_seen, pgm.last_seen
-FROM player_guild_memberships pgm
-JOIN players p ON pgm.player_id = p.player_id AND pgm.region = p.region
-WHERE pgm.guild_id = $1 AND pgm.region = $2
-LIMIT $3 OFFSET $4
-`
-
-type GetGuildMembersParams struct {
-	GuildID string     `json:"guild_id"`
-	Region  RegionEnum `json:"region"`
-	Limit   int32      `json:"limit"`
-	Offset  int32      `json:"offset"`
-}
-
-type GetGuildMembersRow struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	FirstSeen time.Time `json:"first_seen"`
-	LastSeen  time.Time `json:"last_seen"`
-}
-
-func (q *Queries) GetGuildMembers(ctx context.Context, arg GetGuildMembersParams) ([]GetGuildMembersRow, error) {
-	rows, err := q.db.Query(ctx, getGuildMembers,
-		arg.GuildID,
-		arg.Region,
-		arg.Limit,
-		arg.Offset,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []GetGuildMembersRow{}
-	for rows.Next() {
-		var i GetGuildMembersRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Name,
-			&i.FirstSeen,
-			&i.LastSeen,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getPlayerAlliances = `-- name: GetPlayerAlliances :many
-SELECT a.alliance_id AS id, COALESCE(a.name, ''), a.tag, pam.first_seen, pam.last_seen
-FROM player_alliance_memberships pam
-JOIN alliances a ON pam.alliance_id = a.alliance_id AND pam.region = a.region
-WHERE pam.player_id = $1 AND pam.region = $2
-LIMIT $3 OFFSET $4
-`
-
-type GetPlayerAlliancesParams struct {
-	PlayerID string     `json:"player_id"`
-	Region   RegionEnum `json:"region"`
-	Limit    int32      `json:"limit"`
-	Offset   int32      `json:"offset"`
-}
-
-type GetPlayerAlliancesRow struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	Tag       string    `json:"tag"`
-	FirstSeen time.Time `json:"first_seen"`
-	LastSeen  time.Time `json:"last_seen"`
-}
-
-func (q *Queries) GetPlayerAlliances(ctx context.Context, arg GetPlayerAlliancesParams) ([]GetPlayerAlliancesRow, error) {
-	rows, err := q.db.Query(ctx, getPlayerAlliances,
-		arg.PlayerID,
-		arg.Region,
-		arg.Limit,
-		arg.Offset,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []GetPlayerAlliancesRow{}
-	for rows.Next() {
-		var i GetPlayerAlliancesRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Name,
-			&i.Tag,
-			&i.FirstSeen,
-			&i.LastSeen,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getPlayerDetails = `-- name: GetPlayerDetails :one
-SELECT player_id AS id, name, first_seen, last_seen
-FROM players
-WHERE player_id = $1 AND region = $2
-`
-
-type GetPlayerDetailsParams struct {
-	PlayerID string     `json:"player_id"`
-	Region   RegionEnum `json:"region"`
-}
-
-type GetPlayerDetailsRow struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	FirstSeen time.Time `json:"first_seen"`
-	LastSeen  time.Time `json:"last_seen"`
-}
-
-func (q *Queries) GetPlayerDetails(ctx context.Context, arg GetPlayerDetailsParams) (GetPlayerDetailsRow, error) {
-	row := q.db.QueryRow(ctx, getPlayerDetails, arg.PlayerID, arg.Region)
-	var i GetPlayerDetailsRow
-	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.FirstSeen,
-		&i.LastSeen,
-	)
-	return i, err
-}
-
-const getPlayerGuilds = `-- name: GetPlayerGuilds :many
-SELECT g.guild_id AS id, g.name, pgm.first_seen, pgm.last_seen
-FROM player_guild_memberships pgm
-JOIN guilds g ON pgm.guild_id = g.guild_id AND pgm.region = g.region
-WHERE pgm.player_id = $1 AND pgm.region = $2
-LIMIT $3 OFFSET $4
-`
-
-type GetPlayerGuildsParams struct {
-	PlayerID string     `json:"player_id"`
-	Region   RegionEnum `json:"region"`
-	Limit    int32      `json:"limit"`
-	Offset   int32      `json:"offset"`
-}
-
-type GetPlayerGuildsRow struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	FirstSeen time.Time `json:"first_seen"`
-	LastSeen  time.Time `json:"last_seen"`
-}
-
-func (q *Queries) GetPlayerGuilds(ctx context.Context, arg GetPlayerGuildsParams) ([]GetPlayerGuildsRow, error) {
-	rows, err := q.db.Query(ctx, getPlayerGuilds,
-		arg.PlayerID,
-		arg.Region,
-		arg.Limit,
-		arg.Offset,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []GetPlayerGuildsRow{}
-	for rows.Next() {
-		var i GetPlayerGuildsRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Name,
-			&i.FirstSeen,
-			&i.LastSeen,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getPlayerHistory = `-- name: GetPlayerHistory :many
-(SELECT 'guild' AS type, g.guild_id AS id, g.name, NULL AS tag, pgm.first_seen, pgm.last_seen
-FROM player_guild_memberships pgm
-JOIN guilds g ON pgm.guild_id = g.guild_id AND pgm.region = g.region
-WHERE pgm.player_id = $1 AND pgm.region = $2
-LIMIT $3)
-UNION ALL
-(SELECT 'alliance' AS type, a.alliance_id AS id, COALESCE(a.name, ''), a.tag, pam.first_seen, pam.last_seen
-FROM player_alliance_memberships pam
-JOIN alliances a ON pam.alliance_id = a.alliance_id AND pam.region = a.region
-WHERE pam.player_id = $1 AND pam.region = $2
-LIMIT $3)
+const getPlayerHistory = `-- name: GetPlayerHistory :one
+SELECT 
+  (
+    SELECT array_to_json(array_agg(row_to_json(g)))
+    FROM (
+      SELECT 
+        pgm.guild_id,
+        g.name,
+        pgm.first_seen,
+        pgm.last_seen,
+        (
+          SELECT array_to_json(array_agg(row_to_json(a)))
+          FROM (
+            SELECT 
+              gam.alliance_id,
+              a.name,
+              a.tag,
+              GREATEST(pgm.first_seen, gam.first_seen) AS first_seen,
+              LEAST(pgm.last_seen, gam.last_seen) AS l
+            FROM 
+              guild_alliance_memberships gam
+            JOIN 
+              alliances a ON gam.alliance_id = a.alliance_id AND gam.region = a.region
+            WHERE 
+              gam.guild_id = g.guild_id AND gam.region = g.region
+              AND gam.first_seen <= pgm.last_seen
+              AND gam.last_seen >= pgm.first_seen
+          ) a
+        ) AS alliances
+      FROM 
+        player_guild_memberships pgm
+      JOIN 
+        guilds g ON pgm.guild_id = g.guild_id AND pgm.region = g.region
+      WHERE 
+        pgm.player_id = $1 AND pgm.region = $2
+    ) g
+  ) AS history
 `
 
 type GetPlayerHistoryParams struct {
-	PlayerID string     `json:"player_id"`
-	Region   RegionEnum `json:"region"`
-	Limit    int32      `json:"limit"`
+	PlayerID string `json:"player_id"`
+	Region   string `json:"region"`
 }
 
-type GetPlayerHistoryRow struct {
-	Type      string      `json:"type"`
-	ID        string      `json:"id"`
-	Name      string      `json:"name"`
-	Tag       interface{} `json:"tag"`
-	FirstSeen time.Time   `json:"first_seen"`
-	LastSeen  time.Time   `json:"last_seen"`
-}
-
-func (q *Queries) GetPlayerHistory(ctx context.Context, arg GetPlayerHistoryParams) ([]GetPlayerHistoryRow, error) {
-	rows, err := q.db.Query(ctx, getPlayerHistory, arg.PlayerID, arg.Region, arg.Limit)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []GetPlayerHistoryRow{}
-	for rows.Next() {
-		var i GetPlayerHistoryRow
-		if err := rows.Scan(
-			&i.Type,
-			&i.ID,
-			&i.Name,
-			&i.Tag,
-			&i.FirstSeen,
-			&i.LastSeen,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const searchAlliances = `-- name: SearchAlliances :many
-SELECT alliance_id AS id, COALESCE(name, ''), tag
-FROM alliances
-WHERE (name ILIKE $3 || '%' OR tag ILIKE $3 || '%') AND region = $4
-LIMIT $1 OFFSET $2
-`
-
-type SearchAlliancesParams struct {
-	Limit  int32       `json:"limit"`
-	Offset int32       `json:"offset"`
-	Name   pgtype.Text `json:"name"`
-	Region RegionEnum  `json:"region"`
-}
-
-type SearchAlliancesRow struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-	Tag  string `json:"tag"`
-}
-
-func (q *Queries) SearchAlliances(ctx context.Context, arg SearchAlliancesParams) ([]SearchAlliancesRow, error) {
-	rows, err := q.db.Query(ctx, searchAlliances,
-		arg.Limit,
-		arg.Offset,
-		arg.Name,
-		arg.Region,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []SearchAlliancesRow{}
-	for rows.Next() {
-		var i SearchAlliancesRow
-		if err := rows.Scan(&i.ID, &i.Name, &i.Tag); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const searchEntities = `-- name: SearchEntities :many
-SELECT type, id, name, tag FROM (
-    SELECT 'player' AS type, player_id AS id, name, NULL AS tag
-    FROM players AS p
-    WHERE p.name ILIKE $2 || '%' AND p.region = $3
-    LIMIT $1
-) AS players_subquery
-UNION ALL
-SELECT type, id, name, tag FROM (
-    SELECT 'guild' AS type, guild_id AS id, name, NULL AS tag
-    FROM guilds AS g
-    WHERE g.name ILIKE $2 || '%' AND g.region = $3
-    LIMIT $1
-) AS guilds_subquery
-UNION ALL
-SELECT type, id, name, tag FROM (
-    SELECT 'alliance' AS type, alliance_id AS id, COALESCE(name, ''), tag 
-    FROM alliances AS a
-    WHERE (a.name ILIKE $2 || '%' OR a.tag ILIKE $2 || '%') AND a.region = $3
-    LIMIT $1
-) AS alliances_subquery
-`
-
-type SearchEntitiesParams struct {
-	Limit  int32       `json:"limit"`
-	Name   pgtype.Text `json:"name"`
-	Region RegionEnum  `json:"region"`
-}
-
-type SearchEntitiesRow struct {
-	Type string      `json:"type"`
-	ID   string      `json:"id"`
-	Name string      `json:"name"`
-	Tag  interface{} `json:"tag"`
-}
-
-func (q *Queries) SearchEntities(ctx context.Context, arg SearchEntitiesParams) ([]SearchEntitiesRow, error) {
-	rows, err := q.db.Query(ctx, searchEntities, arg.Limit, arg.Name, arg.Region)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []SearchEntitiesRow{}
-	for rows.Next() {
-		var i SearchEntitiesRow
-		if err := rows.Scan(
-			&i.Type,
-			&i.ID,
-			&i.Name,
-			&i.Tag,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const searchGuilds = `-- name: SearchGuilds :many
-SELECT guild_id AS id, name
-FROM guilds
-WHERE name ILIKE $3 || '%' AND region = $4
-LIMIT $1 OFFSET $2
-`
-
-type SearchGuildsParams struct {
-	Limit  int32       `json:"limit"`
-	Offset int32       `json:"offset"`
-	Name   pgtype.Text `json:"name"`
-	Region RegionEnum  `json:"region"`
-}
-
-type SearchGuildsRow struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-}
-
-func (q *Queries) SearchGuilds(ctx context.Context, arg SearchGuildsParams) ([]SearchGuildsRow, error) {
-	rows, err := q.db.Query(ctx, searchGuilds,
-		arg.Limit,
-		arg.Offset,
-		arg.Name,
-		arg.Region,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []SearchGuildsRow{}
-	for rows.Next() {
-		var i SearchGuildsRow
-		if err := rows.Scan(&i.ID, &i.Name); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const searchPlayers = `-- name: SearchPlayers :many
-SELECT player_id AS id, name
-FROM players
-WHERE name ILIKE $3 || '%' AND region = $4
-LIMIT $1 OFFSET $2
-`
-
-type SearchPlayersParams struct {
-	Limit  int32       `json:"limit"`
-	Offset int32       `json:"offset"`
-	Name   pgtype.Text `json:"name"`
-	Region RegionEnum  `json:"region"`
-}
-
-type SearchPlayersRow struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-}
-
-func (q *Queries) SearchPlayers(ctx context.Context, arg SearchPlayersParams) ([]SearchPlayersRow, error) {
-	rows, err := q.db.Query(ctx, searchPlayers,
-		arg.Limit,
-		arg.Offset,
-		arg.Name,
-		arg.Region,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []SearchPlayersRow{}
-	for rows.Next() {
-		var i SearchPlayersRow
-		if err := rows.Scan(&i.ID, &i.Name); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+func (q *Queries) GetPlayerHistory(ctx context.Context, arg GetPlayerHistoryParams) ([]byte, error) {
+	row := q.db.QueryRow(ctx, getPlayerHistory, arg.PlayerID, arg.Region)
+	var history []byte
+	err := row.Scan(&history)
+	return history, err
 }

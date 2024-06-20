@@ -2,7 +2,7 @@ version: "2"
 sql:
   - engine: "postgresql"
     queries: "query.sql"
-    schema: "shared-db/schema.sql"
+    schema: "third_party/albion-registry-db/schema.sql"
     gen:
       go:
         package: "database"
