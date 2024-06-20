@@ -95,7 +95,7 @@ SELECT
               a.name,
               a.tag,
               GREATEST(pgm.first_seen, gam.first_seen) AS first_seen,
-              LEAST(pgm.last_seen, gam.last_seen) AS l
+              LEAST(pgm.last_seen, gam.last_seen) AS last_seen
             FROM 
               guild_alliance_memberships gam
             JOIN 

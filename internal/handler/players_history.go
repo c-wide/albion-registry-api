@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/ao-tools/albion-registry-api/internal/database"
@@ -47,6 +48,12 @@ func (h *Handler) PlayersHistory(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Unable to get player history")
 	}
 
-	// FIXME: OMEGALUL
-	return c.JSON(http.StatusOK, playerHistory)
+	var history []interface{}
+	err = json.Unmarshal(playerHistory, &history)
+	if err != nil {
+		zl.Error().Err(err).Msg("Unable to unmarshal player history")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Unable to unmarshal player history")
+	}
+
+	return c.JSON(http.StatusOK, history)
 }
