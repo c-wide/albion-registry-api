@@ -1,4 +1,4 @@
-module github.com/ao-tools/albion-registry-api
+module github.com/c-wide/albion-registry-api
 
 go 1.22
 

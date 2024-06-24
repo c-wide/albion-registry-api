@@ -1,14 +1,14 @@
-package handler
+package history
 
 import (
 	"net/http"
 
-	"github.com/ao-tools/albion-registry-api/internal/database"
+	"github.com/c-wide/albion-registry-api/internal/database"
 	"github.com/labstack/echo/v4"
 )
 
-func (h *Handler) AllianceHistory(c echo.Context) error {
-	var params HistoryParams
+func (h *Handler) AllianceGuilds(c echo.Context) error {
+	var params BaseParams
 	if err := c.Bind(&params); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
@@ -22,7 +22,7 @@ func (h *Handler) AllianceHistory(c echo.Context) error {
 		limit = 10
 	}
 
-	allianceHistory, err := h.db.GetAllianceHistory(c.Request().Context(), database.GetAllianceHistoryParams{
+	allianceHistory, err := h.queries.GetAllianceGuildHistory(c.Request().Context(), database.GetAllianceGuildHistoryParams{
 		AllianceID: params.ID,
 		Region:     params.Region,
 		Limit:      limit,
