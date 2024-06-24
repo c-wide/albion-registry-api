@@ -15,7 +15,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog"
-	zl "github.com/rs/zerolog/log"
 )
 
 type CustomValidator struct {
@@ -57,9 +56,7 @@ func main() {
 
 	queries := database.New(pool)
 
-	// TODO: do stuff from here
-
-	// Echo new echo instance
+	// Create new echo instance
 	e := echo.New()
 
 	// Create and register validator
@@ -67,22 +64,58 @@ func main() {
 
 	// Register Middleware
 	e.Use(middleware.CORS())
-	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(10)))
+	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(20)))
+	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		LogLatency:      true,
+		LogRemoteIP:     true,
+		LogHost:         true,
+		LogMethod:       true,
+		LogURI:          true,
+		LogUserAgent:    true,
+		LogStatus:       true,
+		LogError:        true,
+		LogResponseSize: true,
+		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+			var event *zerolog.Event
+
+			if v.Error != nil {
+				event = logger.Error().Err(v.Error)
+			} else {
+				event = logger.Info()
+			}
+
+			event.
+				Dur("latency", v.Latency).
+				Str("remoteIP", v.RemoteIP).
+				Str("host", v.Host).
+				Str("method", v.Method).
+				Str("uri", v.URI).
+				Str("userAgent", v.UserAgent).
+				Int("status", v.Status).
+				Int64("responseSize", v.ResponseSize)
+
+			event.Send()
+
+			return nil
+		},
+	}))
 
 	// Initialize handler
-	h := &handler.Handler{DB: queries}
+	h := handler.New(queries)
 
 	// Register groups
-	stats := e.Group("/stats")
-	players := e.Group("/players")
+	statsGroup := e.Group("/stats")
+	historyGroup := e.Group("/history")
 
 	// Register routes
-	stats.GET("/summary", h.StatsSummary)
-	players.GET("/history", h.PlayersHistory)
+	statsGroup.GET("/summary", h.StatsSummary)
+	historyGroup.GET("/players", h.PlayerHistory)
+	historyGroup.GET("/guilds", h.GuildHistory)
+	historyGroup.GET("/alliances", h.AllianceHistory)
 
 	// Start the server
 	err = e.Start(fmt.Sprintf(":%s", os.Getenv("DEFAULT_PORT")))
 	if err != nil {
-		zl.Fatal().Err(err).Msg("Unable to start server")
+		logger.Fatal().Err(err).Msg("Unable to start server")
 	}
 }

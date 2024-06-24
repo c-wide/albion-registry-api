@@ -1,7 +1,11 @@
 package handler
 
-import "github.com/ao-tools/albion-registry-api/internal/database"
+import (
+	"github.com/ao-tools/albion-registry-api/internal/database"
+)
 
-type Handler struct {
-	DB *database.Queries
+func New(queries *database.Queries) *Handler {
+	return &Handler{
+		db: queries,
+	}
 }
