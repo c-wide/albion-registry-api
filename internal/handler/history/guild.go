@@ -7,6 +7,20 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// GetGuildAllianceHistory godoc
+//
+//	@Summary		Guild alliance history
+//	@Description	Retrieve all alliances that the specified guild has been a member of
+//	@Tags			guild
+//	@Produce		json
+//	@Param			region		path		string	true	"Server Region"
+//	@Param			guild_id	path		string	true	"Guild ID"
+//	@Param			limit		query		int		false	"Limit (Default 10)"
+//	@Param			offset		query		int		false	"Offset"
+//	@Success		200			{array}		database.GetGuildAllianceHistoryRow
+//	@Failure		400			{object}	echo.HTTPError
+//	@Failure		500			{object}	echo.HTTPError
+//	@Router			/history/guild/{region}/{guild_id}/alliances [get]
 func (h *Handler) GuildAlliances(c echo.Context) error {
 	var params BaseParams
 	if err := c.Bind(&params); err != nil {
@@ -35,6 +49,20 @@ func (h *Handler) GuildAlliances(c echo.Context) error {
 	return c.JSON(http.StatusOK, guildHistory)
 }
 
+// GetGuildPlayerHistory godoc
+//
+//	@Summary		Guild player history
+//	@Description	Retrieve all players that have been a member of the specified guild
+//	@Tags			guild
+//	@Produce		json
+//	@Param			region		path		string	true	"Server Region"
+//	@Param			guild_id	path		string	true	"Guild ID"
+//	@Param			limit		query		int		false	"Limit (Default 10)"
+//	@Param			offset		query		int		false	"Offset"
+//	@Success		200			{array}		database.GetGuildPlayerHistoryRow
+//	@Failure		400			{object}	echo.HTTPError
+//	@Failure		500			{object}	echo.HTTPError
+//	@Router			/history/guild/{region}/{guild_id}/players [get]
 func (h *Handler) GuildPlayers(c echo.Context) error {
 	var params BaseParams
 	if err := c.Bind(&params); err != nil {

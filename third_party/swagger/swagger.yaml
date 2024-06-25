@@ -1,0 +1,322 @@
+definitions:
+  database.GetAllianceGuildHistoryRow:
+    properties:
+      first_seen:
+        type: string
+      guild_id:
+        type: string
+      last_seen:
+        type: string
+      name:
+        type: string
+    type: object
+  database.GetCountsOfEntitiesRow:
+    properties:
+      alliances:
+        type: integer
+      guilds:
+        type: integer
+      players:
+        type: integer
+    type: object
+  database.GetGuildAllianceHistoryRow:
+    properties:
+      alliance_id:
+        type: string
+      first_seen:
+        type: string
+      last_seen:
+        type: string
+      name:
+        type: string
+      tag:
+        type: string
+    type: object
+  database.GetGuildPlayerHistoryRow:
+    properties:
+      first_seen:
+        type: string
+      last_seen:
+        type: string
+      name:
+        type: string
+      player_id:
+        type: string
+    type: object
+  database.GetPlayerGuildAlliancesRow:
+    properties:
+      alliance_id:
+        type: string
+      first_seen: {}
+      last_seen: {}
+      name:
+        type: string
+      tag:
+        type: string
+    type: object
+  database.GetPlayerHistoryRow:
+    properties:
+      alliances: {}
+      first_seen:
+        type: string
+      guild_id:
+        type: string
+      last_seen:
+        type: string
+      name:
+        type: string
+    type: object
+  echo.HTTPError:
+    properties:
+      message: {}
+    type: object
+info:
+  contact: {}
+  license:
+    name: MIT
+    url: https://mit-license.org/
+  title: Albion Registry API
+  version: "1.0"
+paths:
+  /history/alliance/{region}/{alliance_id}/guilds:
+    get:
+      description: Retrieve all guilds that have been part of the specified alliance
+      parameters:
+      - description: Server Region
+        in: path
+        name: region
+        required: true
+        type: string
+      - description: Alliance ID
+        in: path
+        name: alliance_id
+        required: true
+        type: string
+      - description: Limit (Default 10)
+        in: query
+        name: limit
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.GetAllianceGuildHistoryRow'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      summary: Alliance guild history
+      tags:
+      - alliance
+  /history/guild/{region}/{guild_id}/alliances:
+    get:
+      description: Retrieve all alliances that the specified guild has been a member
+        of
+      parameters:
+      - description: Server Region
+        in: path
+        name: region
+        required: true
+        type: string
+      - description: Guild ID
+        in: path
+        name: guild_id
+        required: true
+        type: string
+      - description: Limit (Default 10)
+        in: query
+        name: limit
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.GetGuildAllianceHistoryRow'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      summary: Guild alliance history
+      tags:
+      - guild
+  /history/guild/{region}/{guild_id}/players:
+    get:
+      description: Retrieve all players that have been a member of the specified guild
+      parameters:
+      - description: Server Region
+        in: path
+        name: region
+        required: true
+        type: string
+      - description: Guild ID
+        in: path
+        name: guild_id
+        required: true
+        type: string
+      - description: Limit (Default 10)
+        in: query
+        name: limit
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.GetGuildPlayerHistoryRow'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      summary: Guild player history
+      tags:
+      - guild
+  /history/player/{region}/{player_id}:
+    get:
+      description: Retrieve all guilds the specified player has been a member of and
+        the alliances the guild was a member of during the player's tenure
+      parameters:
+      - description: Server Region
+        in: path
+        name: region
+        required: true
+        type: string
+      - description: Player ID
+        in: path
+        name: player_id
+        required: true
+        type: string
+      - description: Limit (Default 10)
+        in: query
+        name: limit
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      - description: Alliance Offset (Default 5)
+        in: query
+        name: allianceOffset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.GetPlayerHistoryRow'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      summary: Player guild & alliance history
+      tags:
+      - player
+  /history/player/{region}/{player_id}/{guild_id}/alliances:
+    get:
+      description: Retrieve alliances the specified guild was a member of during the
+        specified players tenure in that guild
+      parameters:
+      - description: Server Region
+        in: path
+        name: region
+        required: true
+        type: string
+      - description: Player ID
+        in: path
+        name: player_id
+        required: true
+        type: string
+      - description: Guild ID
+        in: path
+        name: guild_id
+        required: true
+        type: string
+      - description: Limit (Default 10)
+        in: query
+        name: limit
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.GetPlayerGuildAlliancesRow'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      summary: Player guild alliance history
+      tags:
+      - player
+  /stats/summary:
+    get:
+      description: Retrieves total number of tracked players, guilds, and alliances
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.GetCountsOfEntitiesRow'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      summary: General API statistics
+      tags:
+      - stats
+swagger: "2.0"

@@ -5,6 +5,9 @@ import (
 	"github.com/c-wide/albion-registry-api/internal/handler"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
+	"github.com/swaggo/echo-swagger"
+
+	_ "github.com/c-wide/albion-registry-api/third_party/swagger"
 )
 
 func noop(c echo.Context) error {
@@ -26,4 +29,7 @@ func registerRoutes(e *echo.Echo, logger zerolog.Logger, queries *database.Queri
 	historyGroup.GET("/guild/:region/:id/alliances", h.History.GuildAlliances)
 	historyGroup.GET("/guild/:region/:id/players", h.History.GuildPlayers)
 	historyGroup.GET("/alliance/:region/:id/guilds", h.History.AllianceGuilds)
+
+	// Swagger route
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
 }

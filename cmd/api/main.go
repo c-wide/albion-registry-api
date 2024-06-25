@@ -17,6 +17,10 @@ import (
 	"github.com/rs/zerolog"
 )
 
+//	@title			Albion Registry API
+//	@version		1.0
+//	@license.name	MIT
+//	@license.url	https://mit-license.org/
 func main() {
 	// Load environment variables from .env file
 	if err := godotenv.Load(); err != nil {

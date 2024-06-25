@@ -12,6 +12,21 @@ type PlayerGuildAllianceHistoryParams struct {
 	GuildID string `param:"guild" validate:"required"`
 }
 
+// GetPlayerGuildAllianceHistory godoc
+//
+//	@Summary		Player guild alliance history
+//	@Description	Retrieve alliances the specified guild was a member of during the specified players tenure in that guild
+//	@Tags			player
+//	@Produce		json
+//	@Param			region		path		string	true	"Server Region"
+//	@Param			player_id	path		string	true	"Player ID"
+//	@Param			guild_id	path		string	true	"Guild ID"
+//	@Param			limit		query		int		false	"Limit (Default 10)"
+//	@Param			offset		query		int		false	"Offset"
+//	@Success		200			{array}		database.GetPlayerGuildAlliancesRow
+//	@Failure		400			{object}	echo.HTTPError
+//	@Failure		500			{object}	echo.HTTPError
+//	@Router			/history/player/{region}/{player_id}/{guild_id}/alliances [get]
 func (h *Handler) PlayerGuildAllianceHistory(c echo.Context) error {
 	var params PlayerGuildAllianceHistoryParams
 	if err := c.Bind(&params); err != nil {

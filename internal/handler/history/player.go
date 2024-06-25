@@ -12,6 +12,21 @@ type PlayerHistoryParams struct {
 	AllianceLimit int32 `query:"allianceLimit" validate:"omitempty,min=1,max=20"`
 }
 
+// GetPlayerHistory godoc
+//
+//	@Summary		Player guild & alliance history
+//	@Description	Retrieve all guilds the specified player has been a member of and the alliances the guild was a member of during the player's tenure
+//	@Tags			player
+//	@Produce		json
+//	@Param			region			path		string	true	"Server Region"
+//	@Param			player_id		path		string	true	"Player ID"
+//	@Param			limit			query		int		false	"Limit (Default 10)"
+//	@Param			offset			query		int		false	"Offset"
+//	@Param			allianceOffset	query		int		false	"Alliance Offset (Default 5)"
+//	@Success		200				{array}		database.GetPlayerHistoryRow
+//	@Failure		400				{object}	echo.HTTPError
+//	@Failure		500				{object}	echo.HTTPError
+//	@Router			/history/player/{region}/{player_id} [get]
 func (h *Handler) PlayerHistory(c echo.Context) error {
 	var params PlayerHistoryParams
 	if err := c.Bind(&params); err != nil {
