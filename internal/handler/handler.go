@@ -1,7 +1,20 @@
 package handler
 
-import "github.com/ao-tools/albion-registry-api/internal/database"
+import (
+	"github.com/c-wide/albion-registry-api/internal/database"
+	"github.com/c-wide/albion-registry-api/internal/handler/history"
+	"github.com/c-wide/albion-registry-api/internal/handler/stats"
+	"github.com/rs/zerolog"
+)
 
 type Handler struct {
-	DB *database.Queries
+	Stats   *stats.Handler
+	History *history.Handler
+}
+
+func New(logger zerolog.Logger, queries *database.Queries) *Handler {
+	return &Handler{
+		Stats:   stats.New(logger, queries),
+		History: history.New(logger, queries),
+	}
 }
