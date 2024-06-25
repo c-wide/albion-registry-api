@@ -9,6 +9,15 @@ import (
 func registerMiddleware(e *echo.Echo, logger zerolog.Logger) {
 	e.Use(middleware.CORS())
 	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(20)))
+	e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
+		LogErrorFunc: func(c echo.Context, err error, stack []byte) error {
+			logger.Error().Err(err).Msg("Recovered from panic in HTTP handler")
+			return err
+		},
+	}))
+	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
+		Level: 5,
+	}))
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogLatency:      true,
 		LogRemoteIP:     true,
