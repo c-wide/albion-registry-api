@@ -347,7 +347,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/search/entities/{region}/{search_term}": {
+        "/search/entities/{region}": {
             "get": {
                 "description": "Search for players, guilds, or alliances by their name or tag",
                 "produces": [
@@ -369,7 +369,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Name or Tag",
                         "name": "search_term",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     },
                     {

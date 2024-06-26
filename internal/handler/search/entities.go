@@ -8,9 +8,9 @@ import (
 )
 
 type SearchEntityParams struct {
-	SearchTerm string `param:"search_term" validate:"required"`
-	Region     string `param:"region" validate:"required,oneof=americas asia europe"`
-	Limit      int32  `query:"limit" validate:"omitempty,min=1,max=50"`
+	Region string `param:"region" validate:"required,oneof=americas asia europe"`
+	Query  string `query:"q" validate:"required"`
+	Limit  int32  `query:"limit" validate:"omitempty,min=1,max=50"`
 }
 
 // SearchEntities godoc
@@ -19,13 +19,13 @@ type SearchEntityParams struct {
 //	@Description	Search for players, guilds, or alliances by their name or tag
 //	@Tags			search
 //	@Produce		json
-//	@Param			region		path		string	true	"Server Region"
-//	@Param			search_term	path		string	true	"Name or Tag"
-//	@Param			limit		query		int		false	"Limit (Default 10)"
-//	@Success		200			{array}		database.SearchEntitiesRow
-//	@Failure		400			{object}	echo.HTTPError
-//	@Failure		500			{object}	echo.HTTPError
-//	@Router			/search/entities/{region}/{search_term} [get]
+//	@Param			region	path		string	true	"Server Region"
+//	@Param			q		query		string	true	"Name or Tag"
+//	@Param			limit	query		int		false	"Limit (Default 10)"
+//	@Success		200		{array}		database.SearchEntitiesRow
+//	@Failure		400		{object}	echo.HTTPError
+//	@Failure		500		{object}	echo.HTTPError
+//	@Router			/search/entities/{region} [get]
 func (h *Handler) SearchEntities(c echo.Context) error {
 	var params SearchEntityParams
 	if err := c.Bind(&params); err != nil {
@@ -42,7 +42,7 @@ func (h *Handler) SearchEntities(c echo.Context) error {
 	}
 
 	searchResults, err := h.queries.SearchEntities(c.Request().Context(), database.SearchEntitiesParams{
-		Searchterm: params.SearchTerm,
+		Searchterm: params.Query,
 		Region:     params.Region,
 		Limit:      limit,
 	})
