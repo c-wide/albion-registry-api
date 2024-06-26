@@ -4,6 +4,52 @@ SELECT
   (SELECT COUNT(*) FROM guilds) AS guilds,
   (SELECT COUNT(*) FROM alliances) AS alliances;
 
+-- name: SearchEntities :many
+(
+    SELECT 
+        'player' AS type,
+        player_id AS id,
+        name,
+        '' AS tag,
+        first_seen,
+        last_seen
+    FROM 
+        players p
+    WHERE 
+        p.region = $1 AND p.name ILIKE (@searchTerm::text || '%')
+    LIMIT $2
+)
+UNION ALL
+(
+    SELECT 
+        'guild' AS type,
+        guild_id AS id,
+        name,
+        '' AS tag,
+        first_seen,
+        last_seen
+    FROM 
+        guilds g
+    WHERE 
+        g.region = $1 AND g.name ILIKE (@searchTerm::text || '%')
+    LIMIT $2
+)
+UNION ALL
+(
+    SELECT 
+        'alliance' AS type,
+        alliance_id AS id,
+        name,
+        tag,
+        first_seen,
+        last_seen
+    FROM 
+        alliances a
+    WHERE 
+        a.region = $1 AND (a.name ILIKE (@searchTerm::text || '%') OR a.tag ILIKE (@searchTerm::text || '%'))
+    LIMIT $2
+);
+
 -- name: GetPlayerHistory :many
 SELECT
 	g.name,

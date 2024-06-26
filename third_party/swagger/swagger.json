@@ -338,6 +338,63 @@
                 }
             }
         },
+        "/search/entities/{region}/{search_term}": {
+            "get": {
+                "description": "Search for players, guilds, or alliances by their name or tag",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "search"
+                ],
+                "summary": "Player, guild, or alliance lookup",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Server Region",
+                        "name": "region",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name or Tag",
+                        "name": "search_term",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit (Default 10)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.SearchEntitiesRow"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
         "/stats/summary": {
             "get": {
                 "description": "Retrieves total number of tracked players, guilds, and alliances",
@@ -467,6 +524,29 @@
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "database.SearchEntitiesRow": {
+            "type": "object",
+            "properties": {
+                "first_seen": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_seen": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "tag": {
+                    "type": "string"
+                },
+                "type": {
                     "type": "string"
                 }
             }

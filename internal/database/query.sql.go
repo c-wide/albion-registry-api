@@ -395,3 +395,92 @@ func (q *Queries) GetPlayerHistory(ctx context.Context, arg GetPlayerHistoryPara
 	}
 	return items, nil
 }
+
+const searchEntities = `-- name: SearchEntities :many
+(
+    SELECT 
+        'player' AS type,
+        player_id AS id,
+        name,
+        '' AS tag,
+        first_seen,
+        last_seen
+    FROM 
+        players p
+    WHERE 
+        p.region = $1 AND p.name ILIKE ($3::text || '%')
+    LIMIT $2
+)
+UNION ALL
+(
+    SELECT 
+        'guild' AS type,
+        guild_id AS id,
+        name,
+        '' AS tag,
+        first_seen,
+        last_seen
+    FROM 
+        guilds g
+    WHERE 
+        g.region = $1 AND g.name ILIKE ($3::text || '%')
+    LIMIT $2
+)
+UNION ALL
+(
+    SELECT 
+        'alliance' AS type,
+        alliance_id AS id,
+        name,
+        tag,
+        first_seen,
+        last_seen
+    FROM 
+        alliances a
+    WHERE 
+        a.region = $1 AND (a.name ILIKE ($3::text || '%') OR a.tag ILIKE ($3::text || '%'))
+    LIMIT $2
+)
+`
+
+type SearchEntitiesParams struct {
+	Region     string `json:"region"`
+	Limit      int32  `json:"limit"`
+	Searchterm string `json:"searchterm"`
+}
+
+type SearchEntitiesRow struct {
+	Type      string    `json:"type"`
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Tag       string    `json:"tag"`
+	FirstSeen time.Time `json:"first_seen"`
+	LastSeen  time.Time `json:"last_seen"`
+}
+
+func (q *Queries) SearchEntities(ctx context.Context, arg SearchEntitiesParams) ([]SearchEntitiesRow, error) {
+	rows, err := q.db.Query(ctx, searchEntities, arg.Region, arg.Limit, arg.Searchterm)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []SearchEntitiesRow{}
+	for rows.Next() {
+		var i SearchEntitiesRow
+		if err := rows.Scan(
+			&i.Type,
+			&i.ID,
+			&i.Name,
+			&i.Tag,
+			&i.FirstSeen,
+			&i.LastSeen,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

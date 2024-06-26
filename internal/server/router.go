@@ -10,10 +10,6 @@ import (
 	_ "github.com/c-wide/albion-registry-api/third_party/swagger"
 )
 
-func noop(c echo.Context) error {
-	return c.String(200, "OK")
-}
-
 func registerRoutes(e *echo.Echo, logger zerolog.Logger, queries *database.Queries) {
 	// Initialize handler
 	h := handler.New(logger, queries)
@@ -29,6 +25,10 @@ func registerRoutes(e *echo.Echo, logger zerolog.Logger, queries *database.Queri
 	historyGroup.GET("/guild/:region/:id/alliances", h.History.GuildAlliances)
 	historyGroup.GET("/guild/:region/:id/players", h.History.GuildPlayers)
 	historyGroup.GET("/alliance/:region/:id/guilds", h.History.AllianceGuilds)
+
+	// Search routes
+	searchGroup := e.Group("/search")
+	searchGroup.GET("/entities/:region/:search_term", h.Search.SearchEntities)
 
 	// Swagger route
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
