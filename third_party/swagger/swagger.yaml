@@ -326,7 +326,7 @@ paths:
         type: string
       - description: Name or Tag
         in: query
-        name: search_term
+        name: q
         required: true
         type: string
       - description: Limit (Default 10)

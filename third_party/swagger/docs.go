@@ -368,7 +368,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Name or Tag",
-                        "name": "search_term",
+                        "name": "q",
                         "in": "query",
                         "required": true
                     },
