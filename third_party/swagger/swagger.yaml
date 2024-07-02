@@ -279,7 +279,7 @@ paths:
             $ref: '#/definitions/echo.HTTPError'
       summary: Alliance guild history
       tags:
-      - alliance
+      - history
   /history/guild/{region}/{guild_id}/alliances:
     get:
       description: Retrieve all alliances that the specified guild has been a member
@@ -322,7 +322,7 @@ paths:
             $ref: '#/definitions/echo.HTTPError'
       summary: Guild alliance history
       tags:
-      - guild
+      - history
   /history/guild/{region}/{guild_id}/players:
     get:
       description: Retrieve all players that have been a member of the specified guild
@@ -364,7 +364,7 @@ paths:
             $ref: '#/definitions/echo.HTTPError'
       summary: Guild player history
       tags:
-      - guild
+      - history
   /history/player/{region}/{player_id}:
     get:
       description: Retrieve all guilds the specified player has been a member of and
@@ -388,9 +388,9 @@ paths:
         in: query
         name: offset
         type: integer
-      - description: Alliance Offset (Default 5)
+      - description: Alliance Limit (Default 5)
         in: query
-        name: allianceOffset
+        name: allianceLimit
         type: integer
       produces:
       - application/json
@@ -411,7 +411,7 @@ paths:
             $ref: '#/definitions/echo.HTTPError'
       summary: Player guild & alliance history
       tags:
-      - player
+      - history
   /history/player/{region}/{player_id}/{guild_id}/alliances:
     get:
       description: Retrieve alliances the specified guild was a member of during the
@@ -459,7 +459,7 @@ paths:
             $ref: '#/definitions/echo.HTTPError'
       summary: Player guild alliance history
       tags:
-      - player
+      - history
   /search/entities/{region}:
     get:
       description: Search for players, guilds, or alliances by their name or tag

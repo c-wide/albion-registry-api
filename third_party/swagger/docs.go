@@ -197,7 +197,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "alliance"
+                    "history"
                 ],
                 "summary": "Alliance guild history",
                 "parameters": [
@@ -260,7 +260,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "guild"
+                    "history"
                 ],
                 "summary": "Guild alliance history",
                 "parameters": [
@@ -323,7 +323,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "guild"
+                    "history"
                 ],
                 "summary": "Guild player history",
                 "parameters": [
@@ -386,7 +386,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "player"
+                    "history"
                 ],
                 "summary": "Player guild \u0026 alliance history",
                 "parameters": [
@@ -418,8 +418,8 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "Alliance Offset (Default 5)",
-                        "name": "allianceOffset",
+                        "description": "Alliance Limit (Default 5)",
+                        "name": "allianceLimit",
                         "in": "query"
                     }
                 ],
@@ -455,7 +455,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "player"
+                    "history"
                 ],
                 "summary": "Player guild alliance history",
                 "parameters": [

@@ -16,7 +16,7 @@ type PlayerGuildAllianceHistoryParams struct {
 //
 //	@Summary		Player guild alliance history
 //	@Description	Retrieve alliances the specified guild was a member of during the specified players tenure in that guild
-//	@Tags			player
+//	@Tags			history
 //	@Produce		json
 //	@Param			region		path		string	true	"Server Region"
 //	@Param			player_id	path		string	true	"Player ID"

@@ -11,7 +11,7 @@ import (
 //
 //	@Summary		Alliance guild history
 //	@Description	Retrieve all guilds that have been part of the specified alliance
-//	@Tags			alliance
+//	@Tags			history
 //	@Produce		json
 //	@Param			region		path		string	true	"Server Region"
 //	@Param			alliance_id	path		string	true	"Alliance ID"

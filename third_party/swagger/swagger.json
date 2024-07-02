@@ -188,7 +188,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "alliance"
+                    "history"
                 ],
                 "summary": "Alliance guild history",
                 "parameters": [
@@ -251,7 +251,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "guild"
+                    "history"
                 ],
                 "summary": "Guild alliance history",
                 "parameters": [
@@ -314,7 +314,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "guild"
+                    "history"
                 ],
                 "summary": "Guild player history",
                 "parameters": [
@@ -377,7 +377,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "player"
+                    "history"
                 ],
                 "summary": "Player guild \u0026 alliance history",
                 "parameters": [
@@ -409,8 +409,8 @@
                     },
                     {
                         "type": "integer",
-                        "description": "Alliance Offset (Default 5)",
-                        "name": "allianceOffset",
+                        "description": "Alliance Limit (Default 5)",
+                        "name": "allianceLimit",
                         "in": "query"
                     }
                 ],
@@ -446,7 +446,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "player"
+                    "history"
                 ],
                 "summary": "Player guild alliance history",
                 "parameters": [

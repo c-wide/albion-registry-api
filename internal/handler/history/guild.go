@@ -11,7 +11,7 @@ import (
 //
 //	@Summary		Guild alliance history
 //	@Description	Retrieve all alliances that the specified guild has been a member of
-//	@Tags			guild
+//	@Tags			history
 //	@Produce		json
 //	@Param			region		path		string	true	"Server Region"
 //	@Param			guild_id	path		string	true	"Guild ID"
@@ -53,7 +53,7 @@ func (h *Handler) GuildAlliances(c echo.Context) error {
 //
 //	@Summary		Guild player history
 //	@Description	Retrieve all players that have been a member of the specified guild
-//	@Tags			guild
+//	@Tags			history
 //	@Produce		json
 //	@Param			region		path		string	true	"Server Region"
 //	@Param			guild_id	path		string	true	"Guild ID"
