@@ -4,15 +4,50 @@ SELECT
   (SELECT COUNT(*) FROM guilds) AS guilds,
   (SELECT COUNT(*) FROM alliances) AS alliances;
 
+-- name: GetPlayer :one
+SELECT
+	name,
+	player_id AS id,
+	first_seen,
+	last_seen
+FROM
+	players p
+WHERE 
+	p.player_id = $1
+	AND p.region = $2;
+
+-- name: GetGuild :one
+SELECT
+	name,
+	guild_id AS id,
+	first_seen,
+	last_seen
+FROM
+	guilds g
+WHERE 
+	g.guild_id = $1
+	AND g.region = $2;
+
+-- name: GetAlliance :one
+SELECT
+	name,
+    tag,
+	alliance_id AS id,
+	first_seen,
+	last_seen
+FROM
+	alliances a
+WHERE 
+	a.alliance_id = $1
+	AND a.region = $2;
+
 -- name: SearchEntities :many
 (
     SELECT 
         'player' AS type,
         player_id AS id,
         name,
-        '' AS tag,
-        first_seen,
-        last_seen
+        '' AS tag
     FROM 
         players p
     WHERE 
@@ -25,9 +60,7 @@ UNION ALL
         'guild' AS type,
         guild_id AS id,
         name,
-        '' AS tag,
-        first_seen,
-        last_seen
+        '' AS tag
     FROM 
         guilds g
     WHERE 
@@ -40,9 +73,7 @@ UNION ALL
         'alliance' AS type,
         alliance_id AS id,
         name,
-        tag,
-        first_seen,
-        last_seen
+        tag
     FROM 
         alliances a
     WHERE 

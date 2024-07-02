@@ -10,6 +10,46 @@ import (
 	"time"
 )
 
+const getAlliance = `-- name: GetAlliance :one
+SELECT
+	name,
+    tag,
+	alliance_id AS id,
+	first_seen,
+	last_seen
+FROM
+	alliances a
+WHERE 
+	a.alliance_id = $1
+	AND a.region = $2
+`
+
+type GetAllianceParams struct {
+	AllianceID string `json:"alliance_id"`
+	Region     string `json:"region"`
+}
+
+type GetAllianceRow struct {
+	Name      *string   `json:"name"`
+	Tag       string    `json:"tag"`
+	ID        string    `json:"id"`
+	FirstSeen time.Time `json:"first_seen"`
+	LastSeen  time.Time `json:"last_seen"`
+}
+
+func (q *Queries) GetAlliance(ctx context.Context, arg GetAllianceParams) (GetAllianceRow, error) {
+	row := q.db.QueryRow(ctx, getAlliance, arg.AllianceID, arg.Region)
+	var i GetAllianceRow
+	err := row.Scan(
+		&i.Name,
+		&i.Tag,
+		&i.ID,
+		&i.FirstSeen,
+		&i.LastSeen,
+	)
+	return i, err
+}
+
 const getAllianceGuildHistory = `-- name: GetAllianceGuildHistory :many
 SELECT
     g.guild_id,
@@ -91,6 +131,43 @@ func (q *Queries) GetCountsOfEntities(ctx context.Context) (GetCountsOfEntitiesR
 	row := q.db.QueryRow(ctx, getCountsOfEntities)
 	var i GetCountsOfEntitiesRow
 	err := row.Scan(&i.Players, &i.Guilds, &i.Alliances)
+	return i, err
+}
+
+const getGuild = `-- name: GetGuild :one
+SELECT
+	name,
+	guild_id AS id,
+	first_seen,
+	last_seen
+FROM
+	guilds g
+WHERE 
+	g.guild_id = $1
+	AND g.region = $2
+`
+
+type GetGuildParams struct {
+	GuildID string `json:"guild_id"`
+	Region  string `json:"region"`
+}
+
+type GetGuildRow struct {
+	Name      string    `json:"name"`
+	ID        string    `json:"id"`
+	FirstSeen time.Time `json:"first_seen"`
+	LastSeen  time.Time `json:"last_seen"`
+}
+
+func (q *Queries) GetGuild(ctx context.Context, arg GetGuildParams) (GetGuildRow, error) {
+	row := q.db.QueryRow(ctx, getGuild, arg.GuildID, arg.Region)
+	var i GetGuildRow
+	err := row.Scan(
+		&i.Name,
+		&i.ID,
+		&i.FirstSeen,
+		&i.LastSeen,
+	)
 	return i, err
 }
 
@@ -222,6 +299,43 @@ func (q *Queries) GetGuildPlayerHistory(ctx context.Context, arg GetGuildPlayerH
 		return nil, err
 	}
 	return items, nil
+}
+
+const getPlayer = `-- name: GetPlayer :one
+SELECT
+	name,
+	player_id AS id,
+	first_seen,
+	last_seen
+FROM
+	players p
+WHERE 
+	p.player_id = $1
+	AND p.region = $2
+`
+
+type GetPlayerParams struct {
+	PlayerID string `json:"player_id"`
+	Region   string `json:"region"`
+}
+
+type GetPlayerRow struct {
+	Name      string    `json:"name"`
+	ID        string    `json:"id"`
+	FirstSeen time.Time `json:"first_seen"`
+	LastSeen  time.Time `json:"last_seen"`
+}
+
+func (q *Queries) GetPlayer(ctx context.Context, arg GetPlayerParams) (GetPlayerRow, error) {
+	row := q.db.QueryRow(ctx, getPlayer, arg.PlayerID, arg.Region)
+	var i GetPlayerRow
+	err := row.Scan(
+		&i.Name,
+		&i.ID,
+		&i.FirstSeen,
+		&i.LastSeen,
+	)
+	return i, err
 }
 
 const getPlayerGuildAlliances = `-- name: GetPlayerGuildAlliances :many
@@ -402,9 +516,7 @@ const searchEntities = `-- name: SearchEntities :many
         'player' AS type,
         player_id AS id,
         name,
-        '' AS tag,
-        first_seen,
-        last_seen
+        '' AS tag
     FROM 
         players p
     WHERE 
@@ -417,9 +529,7 @@ UNION ALL
         'guild' AS type,
         guild_id AS id,
         name,
-        '' AS tag,
-        first_seen,
-        last_seen
+        '' AS tag
     FROM 
         guilds g
     WHERE 
@@ -432,9 +542,7 @@ UNION ALL
         'alliance' AS type,
         alliance_id AS id,
         name,
-        tag,
-        first_seen,
-        last_seen
+        tag
     FROM 
         alliances a
     WHERE 
@@ -450,12 +558,10 @@ type SearchEntitiesParams struct {
 }
 
 type SearchEntitiesRow struct {
-	Type      string    `json:"type"`
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	Tag       string    `json:"tag"`
-	FirstSeen time.Time `json:"first_seen"`
-	LastSeen  time.Time `json:"last_seen"`
+	Type string `json:"type"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Tag  string `json:"tag"`
 }
 
 func (q *Queries) SearchEntities(ctx context.Context, arg SearchEntitiesParams) ([]SearchEntitiesRow, error) {
@@ -472,8 +578,6 @@ func (q *Queries) SearchEntities(ctx context.Context, arg SearchEntitiesParams) 
 			&i.ID,
 			&i.Name,
 			&i.Tag,
-			&i.FirstSeen,
-			&i.LastSeen,
 		); err != nil {
 			return nil, err
 		}

@@ -19,6 +19,177 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/entity/alliance/{region}/{id}": {
+            "get": {
+                "description": "Get basic alliance information by alliance id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "entity"
+                ],
+                "summary": "Get basic alliance information",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Server Region",
+                        "name": "region",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Alliance ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.GetAllianceRow"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/entity/guild/{region}/{id}": {
+            "get": {
+                "description": "Get basic guild information by guild id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "entity"
+                ],
+                "summary": "Get basic guild information",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Server Region",
+                        "name": "region",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Guild ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.GetGuildRow"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/entity/player/{region}/{id}": {
+            "get": {
+                "description": "Get basic player information by player id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "entity"
+                ],
+                "summary": "Get basic player information",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Server Region",
+                        "name": "region",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Player ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.GetPlayerRow"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
         "/history/alliance/{region}/{alliance_id}/guilds": {
             "get": {
                 "description": "Retrieve all guilds that have been part of the specified alliance",
@@ -452,6 +623,26 @@ const docTemplate = `{
                 }
             }
         },
+        "database.GetAllianceRow": {
+            "type": "object",
+            "properties": {
+                "first_seen": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_seen": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "tag": {
+                    "type": "string"
+                }
+            }
+        },
         "database.GetCountsOfEntitiesRow": {
             "type": "object",
             "properties": {
@@ -503,6 +694,23 @@ const docTemplate = `{
                 }
             }
         },
+        "database.GetGuildRow": {
+            "type": "object",
+            "properties": {
+                "first_seen": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_seen": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "database.GetPlayerGuildAlliancesRow": {
             "type": "object",
             "properties": {
@@ -537,7 +745,7 @@ const docTemplate = `{
                 }
             }
         },
-        "database.SearchEntitiesRow": {
+        "database.GetPlayerRow": {
             "type": "object",
             "properties": {
                 "first_seen": {
@@ -547,6 +755,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "last_seen": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "database.SearchEntitiesRow": {
+            "type": "object",
+            "properties": {
+                "id": {
                     "type": "string"
                 },
                 "name": {

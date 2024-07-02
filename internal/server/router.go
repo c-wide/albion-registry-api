@@ -30,6 +30,12 @@ func registerRoutes(e *echo.Echo, logger zerolog.Logger, queries *database.Queri
 	searchGroup := e.Group("/search")
 	searchGroup.GET("/entities/:region", h.Search.SearchEntities)
 
+	// Entity routes
+	entityGroup := e.Group("/entity")
+	entityGroup.GET("/player/:region/:id", h.Entity.GetPlayerInfo)
+	entityGroup.GET("/guild/:region/:id", h.Entity.GetGuildInfo)
+	entityGroup.GET("/alliance/:region/:id", h.Entity.GetAllianceInfo)
+
 	// Swagger route
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 }
