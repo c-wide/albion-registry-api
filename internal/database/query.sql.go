@@ -516,11 +516,18 @@ const searchEntities = `-- name: SearchEntities :many
         'player' AS type,
         player_id AS id,
         name,
-        '' AS tag
+        '' AS tag,
+        CASE
+            WHEN LOWER(name) = LOWER($3::text) THEN 0
+            ELSE 1
+        END AS match_rank
     FROM 
         players p
     WHERE 
         p.region = $1 AND p.name ILIKE ($3::text || '%')
+    ORDER BY
+        match_rank,
+        LENGTH(name)
     LIMIT $2
 )
 UNION ALL
@@ -529,11 +536,18 @@ UNION ALL
         'guild' AS type,
         guild_id AS id,
         name,
-        '' AS tag
+        '' AS tag,
+        CASE
+            WHEN LOWER(name) = LOWER($3::text) THEN 0
+            ELSE 1
+        END AS match_rank
     FROM 
         guilds g
     WHERE 
         g.region = $1 AND g.name ILIKE ($3::text || '%')
+    ORDER BY
+        match_rank,
+        LENGTH(name)
     LIMIT $2
 )
 UNION ALL
@@ -542,11 +556,19 @@ UNION ALL
         'alliance' AS type,
         alliance_id AS id,
         name,
-        tag
+        tag,
+        CASE
+            WHEN LOWER(name) = LOWER($3::text) THEN 0
+            WHEN LOWER(tag) = LOWER($3::text) THEN 0
+            ELSE 1
+        END AS match_rank
     FROM 
         alliances a
     WHERE 
         a.region = $1 AND (a.name ILIKE ($3::text || '%') OR a.tag ILIKE ($3::text || '%'))
+    ORDER BY
+        match_rank,
+        LENGTH(name)
     LIMIT $2
 )
 `
@@ -558,10 +580,11 @@ type SearchEntitiesParams struct {
 }
 
 type SearchEntitiesRow struct {
-	Type string `json:"type"`
-	ID   string `json:"id"`
-	Name string `json:"name"`
-	Tag  string `json:"tag"`
+	Type      string `json:"type"`
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	Tag       string `json:"tag"`
+	MatchRank int32  `json:"match_rank"`
 }
 
 func (q *Queries) SearchEntities(ctx context.Context, arg SearchEntitiesParams) ([]SearchEntitiesRow, error) {
@@ -578,6 +601,7 @@ func (q *Queries) SearchEntities(ctx context.Context, arg SearchEntitiesParams) 
 			&i.ID,
 			&i.Name,
 			&i.Tag,
+			&i.MatchRank,
 		); err != nil {
 			return nil, err
 		}

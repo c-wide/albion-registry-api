@@ -47,11 +47,18 @@ WHERE
         'player' AS type,
         player_id AS id,
         name,
-        '' AS tag
+        '' AS tag,
+        CASE
+            WHEN LOWER(name) = LOWER(@searchTerm::text) THEN 0
+            ELSE 1
+        END AS match_rank
     FROM 
         players p
     WHERE 
         p.region = $1 AND p.name ILIKE (@searchTerm::text || '%')
+    ORDER BY
+        match_rank,
+        LENGTH(name)
     LIMIT $2
 )
 UNION ALL
@@ -60,11 +67,18 @@ UNION ALL
         'guild' AS type,
         guild_id AS id,
         name,
-        '' AS tag
+        '' AS tag,
+        CASE
+            WHEN LOWER(name) = LOWER(@searchTerm::text) THEN 0
+            ELSE 1
+        END AS match_rank
     FROM 
         guilds g
     WHERE 
         g.region = $1 AND g.name ILIKE (@searchTerm::text || '%')
+    ORDER BY
+        match_rank,
+        LENGTH(name)
     LIMIT $2
 )
 UNION ALL
@@ -73,11 +87,19 @@ UNION ALL
         'alliance' AS type,
         alliance_id AS id,
         name,
-        tag
+        tag,
+        CASE
+            WHEN LOWER(name) = LOWER(@searchTerm::text) THEN 0
+            WHEN LOWER(tag) = LOWER(@searchTerm::text) THEN 0
+            ELSE 1
+        END AS match_rank
     FROM 
         alliances a
     WHERE 
         a.region = $1 AND (a.name ILIKE (@searchTerm::text || '%') OR a.tag ILIKE (@searchTerm::text || '%'))
+    ORDER BY
+        match_rank,
+        LENGTH(name)
     LIMIT $2
 );
 
