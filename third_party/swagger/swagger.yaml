@@ -92,6 +92,10 @@ definitions:
     type: object
   database.GetPlayerRow:
     properties:
+      avatar:
+        type: string
+      avatar_ring:
+        type: string
       first_seen:
         type: string
       id:
@@ -105,6 +109,8 @@ definitions:
     properties:
       id:
         type: string
+      match_rank:
+        type: integer
       name:
         type: string
       tag:

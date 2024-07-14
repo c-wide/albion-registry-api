@@ -748,6 +748,12 @@ const docTemplate = `{
         "database.GetPlayerRow": {
             "type": "object",
             "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "avatar_ring": {
+                    "type": "string"
+                },
                 "first_seen": {
                     "type": "string"
                 },
@@ -767,6 +773,9 @@ const docTemplate = `{
             "properties": {
                 "id": {
                     "type": "string"
+                },
+                "match_rank": {
+                    "type": "integer"
                 },
                 "name": {
                     "type": "string"

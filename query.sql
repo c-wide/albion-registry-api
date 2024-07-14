@@ -8,6 +8,8 @@ SELECT
 SELECT
 	name,
 	player_id AS id,
+    avatar,
+    avatar_ring,
 	first_seen,
 	last_seen
 FROM
