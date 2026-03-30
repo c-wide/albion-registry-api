@@ -226,6 +226,18 @@ const docTemplate = `{
                         "description": "Offset",
                         "name": "offset",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Cursor timestamp (RFC3339). Requires before_id",
+                        "name": "before_first_seen",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Cursor guild ID tiebreaker. Requires before_first_seen",
+                        "name": "before_id",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -288,6 +300,18 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "Offset",
                         "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Cursor timestamp (RFC3339). Requires before_id",
+                        "name": "before_first_seen",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Cursor alliance ID tiebreaker. Requires before_first_seen",
+                        "name": "before_id",
                         "in": "query"
                     }
                 ],
@@ -352,6 +376,18 @@ const docTemplate = `{
                         "description": "Offset",
                         "name": "offset",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Cursor timestamp (RFC3339). Requires before_id",
+                        "name": "before_first_seen",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Cursor player ID tiebreaker. Requires before_first_seen",
+                        "name": "before_id",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -414,6 +450,18 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "Offset",
                         "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Cursor timestamp (RFC3339). Requires before_id",
+                        "name": "before_first_seen",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Cursor guild ID tiebreaker. Requires before_first_seen",
+                        "name": "before_id",
                         "in": "query"
                     },
                     {
@@ -490,6 +538,18 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "Offset",
                         "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Cursor timestamp (RFC3339). Requires before_id",
+                        "name": "before_first_seen",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Cursor alliance ID tiebreaker. Requires before_first_seen",
+                        "name": "before_id",
                         "in": "query"
                     }
                 ],
@@ -717,8 +777,12 @@ const docTemplate = `{
                 "alliance_id": {
                     "type": "string"
                 },
-                "first_seen": {},
-                "last_seen": {},
+                "first_seen": {
+                    "type": "string"
+                },
+                "last_seen": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },

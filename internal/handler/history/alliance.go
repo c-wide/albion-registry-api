@@ -17,6 +17,8 @@ import (
 //	@Param			alliance_id	path		string	true	"Alliance ID"
 //	@Param			limit		query		int		false	"Limit (Default 10)"
 //	@Param			offset		query		int		false	"Offset"
+//	@Param			before_first_seen	query		string	false	"Cursor timestamp (RFC3339). Requires before_id"
+//	@Param			before_id	query		string	false	"Cursor guild ID tiebreaker. Requires before_first_seen"
 //	@Success		200			{array}		database.GetAllianceGuildHistoryRow
 //	@Failure		400			{object}	echo.HTTPError
 //	@Failure		500			{object}	echo.HTTPError
@@ -31,16 +33,19 @@ func (h *Handler) AllianceGuilds(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	limit := params.Limit
-	if limit == 0 {
-		limit = 10
+	cursor, err := parseCursorParams(params.BeforeFirstSeen, params.BeforeID, params.Offset)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	allianceHistory, err := h.queries.GetAllianceGuildHistory(c.Request().Context(), database.GetAllianceGuildHistoryParams{
 		AllianceID: params.ID,
 		Region:     params.Region,
-		Limit:      limit,
-		Offset:     params.Offset,
+		Limit:      defaultLimit(params.Limit),
+		Offset:     cursor.Offset,
+		UseCursor:  cursor.UseCursor,
+		BeforeID:   cursor.BeforeID,
+		BeforeTime: cursor.BeforeTime,
 	})
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "An error occurred while processing your request")

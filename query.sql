@@ -56,11 +56,13 @@ WHERE
         END AS match_rank
     FROM 
         players p
-    WHERE 
-        p.region = $1 AND p.name ILIKE (@searchTerm::text || '%')
+    WHERE
+        p.region = $1 AND LOWER(p.name) LIKE LOWER(@searchTerm::text) || '%'
     ORDER BY
         match_rank,
-        LENGTH(name)
+        LENGTH(name),
+        name,
+        player_id
     LIMIT $2
 )
 UNION ALL
@@ -76,11 +78,13 @@ UNION ALL
         END AS match_rank
     FROM 
         guilds g
-    WHERE 
-        g.region = $1 AND g.name ILIKE (@searchTerm::text || '%')
+    WHERE
+        g.region = $1 AND LOWER(g.name) LIKE LOWER(@searchTerm::text) || '%'
     ORDER BY
         match_rank,
-        LENGTH(name)
+        LENGTH(name),
+        name,
+        guild_id
     LIMIT $2
 )
 UNION ALL
@@ -97,70 +101,92 @@ UNION ALL
         END AS match_rank
     FROM 
         alliances a
-    WHERE 
-        a.region = $1 AND (a.name ILIKE (@searchTerm::text || '%') OR a.tag ILIKE (@searchTerm::text || '%'))
+    WHERE
+        a.region = $1
+        AND (
+            LOWER(a.name) LIKE LOWER(@searchTerm::text) || '%'
+            OR LOWER(a.tag) LIKE LOWER(@searchTerm::text) || '%'
+        )
     ORDER BY
         match_rank,
-        LENGTH(name)
+        LENGTH(COALESCE(name, tag)),
+        COALESCE(name, tag),
+        alliance_id
     LIMIT $2
 );
 
 -- name: GetPlayerHistory :many
+WITH paged_memberships AS (
+    SELECT
+        pgm.guild_id,
+        pgm.region,
+        pgm.first_seen,
+        pgm.last_seen
+    FROM
+        player_guild_memberships pgm
+WHERE
+        pgm.player_id = $1
+        AND pgm.region = $2
+        AND (
+            NOT @use_cursor::boolean
+            OR (pgm.first_seen, pgm.guild_id) < (@before_time::timestamptz, @before_id::text)
+        )
+    ORDER BY
+        pgm.first_seen DESC,
+        pgm.guild_id DESC
+    LIMIT $3 OFFSET $4
+)
 SELECT
 	g.name,
-	g.guild_id,
-	pgm.first_seen,
-	pgm.last_seen,
-	COALESCE(
-	(
-	SELECT
-		array_to_json(array_agg(row_to_json(a)))
-	FROM
-		(
-		SELECT
-			a.alliance_id,
-			a.name,
-			a.tag,
-			GREATEST(pgm.first_seen, gam.first_seen) AS first_seen,
-			LEAST(pgm.last_seen, gam.last_seen) AS last_seen
-		FROM
-			guild_alliance_memberships gam
-		JOIN 
-            alliances a ON
-			gam.alliance_id = a.alliance_id
-			AND gam.region = a.region
-		WHERE
-			gam.guild_id = g.guild_id
-			AND gam.region = g.region
-			AND gam.first_seen <= pgm.last_seen
-			AND gam.last_seen >= pgm.first_seen
-		ORDER BY
-			gam.first_seen DESC
-        LIMIT @allianceLimit
-		) a
-	),
-	'[]'::JSON
-	) AS alliances
+	pm.guild_id,
+	pm.first_seen,
+	pm.last_seen,
+	COALESCE(alliance_history.alliances, '[]'::JSON)::json AS alliances
 FROM
-	player_guild_memberships pgm
+	paged_memberships pm
 JOIN
 	guilds g ON
-	pgm.guild_id = g.guild_id
-	AND pgm.region = g.region
-WHERE 
-	pgm.player_id = $1
-	AND pgm.region = $2
+	pm.guild_id = g.guild_id
+	AND pm.region = g.region
+LEFT JOIN LATERAL (
+    SELECT
+        array_to_json(array_agg(row_to_json(a))) AS alliances
+    FROM
+        (
+        SELECT
+            a.alliance_id,
+            a.name,
+            a.tag,
+            GREATEST(pm.first_seen, gam.first_seen) AS first_seen,
+            LEAST(pm.last_seen, gam.last_seen) AS last_seen
+        FROM
+            guild_alliance_memberships gam
+        JOIN
+            alliances a ON
+            gam.alliance_id = a.alliance_id
+            AND gam.region = a.region
+        WHERE
+            gam.guild_id = pm.guild_id
+            AND gam.region = pm.region
+            AND gam.first_seen <= pm.last_seen
+            AND gam.last_seen >= pm.first_seen
+        ORDER BY
+            GREATEST(pm.first_seen, gam.first_seen) DESC,
+            gam.alliance_id DESC
+        LIMIT @alliance_limit
+        ) a
+) alliance_history ON true
 ORDER BY 
-	pgm.first_seen DESC
-LIMIT $3 OFFSET $4;
+	pm.first_seen DESC,
+	pm.guild_id DESC;
 
 -- name: GetPlayerGuildAlliances :many
 SELECT
     a.alliance_id,
     a.name,
     a.tag,
-    GREATEST(pgm.first_seen, gam.first_seen) AS first_seen,
-    LEAST(pgm.last_seen, gam.last_seen) AS last_seen
+    GREATEST(pgm.first_seen, gam.first_seen)::timestamptz AS first_seen,
+    LEAST(pgm.last_seen, gam.last_seen)::timestamptz AS last_seen
 FROM
     player_guild_memberships pgm
 JOIN
@@ -175,8 +201,13 @@ WHERE
     AND pgm.guild_id = $3
     AND gam.first_seen <= pgm.last_seen
     AND gam.last_seen >= pgm.first_seen
+    AND (
+        NOT @use_cursor::boolean
+        OR (GREATEST(pgm.first_seen, gam.first_seen), gam.alliance_id) < (@before_time::timestamptz, @before_id::text)
+    )
 ORDER BY
-    gam.first_seen DESC
+    GREATEST(pgm.first_seen, gam.first_seen)::timestamptz DESC,
+    gam.alliance_id DESC
 LIMIT $4 OFFSET $5;
 
 -- name: GetGuildAllianceHistory :many
@@ -195,8 +226,13 @@ JOIN
 WHERE
 	gam.guild_id = $1
 	AND gam.region = $2
+    AND (
+        NOT @use_cursor::boolean
+        OR (gam.first_seen, gam.alliance_id) < (@before_time::timestamptz, @before_id::text)
+    )
 ORDER BY
-	gam.first_seen DESC
+	gam.first_seen DESC,
+    gam.alliance_id DESC
 LIMIT $3 OFFSET $4;
 
 -- name: GetGuildPlayerHistory :many
@@ -213,8 +249,13 @@ JOIN players p ON
 WHERE 
 	pgm.guild_id = $1
 	AND pgm.region = $2
+    AND (
+        NOT @use_cursor::boolean
+        OR (pgm.first_seen, pgm.player_id) < (@before_time::timestamptz, @before_id::text)
+    )
 ORDER BY
-	pgm.first_seen DESC
+	pgm.first_seen DESC,
+    pgm.player_id DESC
 LIMIT $3 OFFSET $4;
 
 -- name: GetAllianceGuildHistory :many
@@ -232,6 +273,11 @@ JOIN
 WHERE
 	gam.alliance_id = $1
 	AND gam.region = $2
+    AND (
+        NOT @use_cursor::boolean
+        OR (gam.first_seen, gam.guild_id) < (@before_time::timestamptz, @before_id::text)
+    )
 ORDER BY
-	gam.first_seen DESC
+	gam.first_seen DESC,
+    gam.guild_id DESC
 LIMIT $3 OFFSET $4;

@@ -217,6 +217,18 @@
                         "description": "Offset",
                         "name": "offset",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Cursor timestamp (RFC3339). Requires before_id",
+                        "name": "before_first_seen",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Cursor guild ID tiebreaker. Requires before_first_seen",
+                        "name": "before_id",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -279,6 +291,18 @@
                         "type": "integer",
                         "description": "Offset",
                         "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Cursor timestamp (RFC3339). Requires before_id",
+                        "name": "before_first_seen",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Cursor alliance ID tiebreaker. Requires before_first_seen",
+                        "name": "before_id",
                         "in": "query"
                     }
                 ],
@@ -343,6 +367,18 @@
                         "description": "Offset",
                         "name": "offset",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Cursor timestamp (RFC3339). Requires before_id",
+                        "name": "before_first_seen",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Cursor player ID tiebreaker. Requires before_first_seen",
+                        "name": "before_id",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -405,6 +441,18 @@
                         "type": "integer",
                         "description": "Offset",
                         "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Cursor timestamp (RFC3339). Requires before_id",
+                        "name": "before_first_seen",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Cursor guild ID tiebreaker. Requires before_first_seen",
+                        "name": "before_id",
                         "in": "query"
                     },
                     {
@@ -481,6 +529,18 @@
                         "type": "integer",
                         "description": "Offset",
                         "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Cursor timestamp (RFC3339). Requires before_id",
+                        "name": "before_first_seen",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Cursor alliance ID tiebreaker. Requires before_first_seen",
+                        "name": "before_id",
                         "in": "query"
                     }
                 ],
@@ -708,8 +768,12 @@
                 "alliance_id": {
                     "type": "string"
                 },
-                "first_seen": {},
-                "last_seen": {},
+                "first_seen": {
+                    "type": "string"
+                },
+                "last_seen": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
